@@ -1,26 +1,38 @@
 #! [allow(unused)]
 
+use crate::model::ModelController;
+
 pub use self::error::{Error, Result};
 //testing to see if this workd, its wokring brobro 
 //this is added from branch 1
 use std::net::SocketAddr;
 use axum::extract::Path;
+use tower_cookies::CookieManagerLayer;
 use std::ffi::OsStr;
-use axum::Router;
+use axum::{Router, middleware};
 use axum::extract::Query;
-use axum::response::{Html, IntoResponse};
+use axum::response::{Html, IntoResponse, Response};
 use axum::routing::{get, get_service};
 use serde::Deserialize;
 use tower_http::services::ServeDir;
 
 mod error;
+mod model;
 mod web;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()>{
+    //initialize model controller
+    let mc = ModelController::new().await?;
+
+    let routes_apis = web::routes_chats::routes(mc.clone()).route_layer(middleware::from_fn(web::mw_auth::mw_require_auth));
+    //Layers bottom to top, middlewares that require cookies need to be above cookiemanager.
     let routes_all: Router = Router::new()
         .merge(routes_hello())
         .merge(web::routes_login::routes())
+        .nest("/api", routes_apis)
+        .layer(middleware::map_response(main_response_mapper))
+        .layer(CookieManagerLayer::new())
         .fallback_service(routes_static());
     
     // --- START SERVER
@@ -31,6 +43,13 @@ async fn main() {
         .await
         .unwrap();
     // --- 
+    Ok(())
+}
+
+async fn main_response_mapper(res: Response) -> Response {
+    println!("->> {:<12} - main_response_mapper", "RES_MAPPER");
+    println!();
+    res
 }
 
 fn routes_static() -> Router {
