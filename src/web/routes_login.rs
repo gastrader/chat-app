@@ -31,7 +31,6 @@ async fn api_login(cookies: Cookies, payload: Json<LoginPayload>) -> Result<Json
     
 }
 
-
 #[derive(Debug, Deserialize)]
 struct LoginPayload {
     username: String,
