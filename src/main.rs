@@ -58,7 +58,9 @@ async fn main_response_mapper(res: Response) -> Response {
 }
 
 fn routes_static() -> Router {
-    Router::new().nest_service("/", get_service(ServeDir::new("./")))
+    Router::new()
+    .route("/chat", get(index))
+    .nest_service("/", get_service(ServeDir::new("./")))
 }
 
 fn routes_hello() -> Router {
@@ -86,3 +88,6 @@ async fn handler_hello2(Path(name): Path<String>) -> impl IntoResponse {
 	Html(format!("Hello2 <strong>{name}</strong>"))
 }
 
+async fn index() -> Html<&'static str> {
+    Html(std::include_str!("../chat.html"))
+}
