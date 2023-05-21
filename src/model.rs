@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use tower_cookies::cookie::time::PrimitiveDateTime;
 use std::{sync::{Arc, Mutex}, clone};
 
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Chat {
     pub id: u64,
